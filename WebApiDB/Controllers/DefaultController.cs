@@ -77,7 +77,7 @@ namespace WebApiDB.Controllers
                     using (SqlCommand command = new SqlCommand())
                     {
                         command.Connection = connection;
-                        command.CommandText = "SELECT * FROM CLIENTES";
+                        command.CommandText = "SELECIONAR_TODOS_CLIENTES";//"SELECT * FROM CLIENTES";
 
                         SqlDataReader reader = command.ExecuteReader();
 
