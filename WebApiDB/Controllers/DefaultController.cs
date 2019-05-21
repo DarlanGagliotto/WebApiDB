@@ -37,23 +37,41 @@ namespace WebApiDB.Controllers
         [Route("consulta/cliente/{id:int}")]
         public HttpResponseMessage GetClientePorId(int id)
         {
+            Cliente cliente = new Cliente();
+
             try
             {
-                var clientes = new[] {
-                    new { Id = 1, Nome = "Pedro", DataNascimento = new DateTime(1954, 2, 1) },
-                    new { Id = 2, Nome = "Paulo", DataNascimento = new DateTime(1944, 4, 12) },
-                    new { Id = 3, Nome = "Fernando", DataNascimento = new DateTime(1963, 5, 9) },
-                    new { Id = 4, Nome = "Maria", DataNascimento = new DateTime(1984, 4, 30) },
-                    new { Id = 5, Nome = "João", DataNascimento = new DateTime(1990, 3, 14) },
-                    new { Id = 6, Nome = "Joana", DataNascimento = new DateTime(1974, 6, 19) }
-                };
-
-                var cliente = clientes.Where(x => x.Id == id).FirstOrDefault();
-
-                if (cliente == null)
+                using (SqlConnection connection = new SqlConnection(this.ConnectionString))
                 {
-                    throw new Exception("Cliente não encontrado");
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand())
+                    {
+                        command.Connection = connection;
+                        command.CommandText = "SELECIONAR_CLIENTE";
+                        command.Parameters.AddWithValue("@ID", id);
+
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        SqlDataReader reader = command.ExecuteReader();
+
+                        if (reader.Read())
+                        {
+                            cliente.ID = reader["ID"] == DBNull.Value ? 0 : Convert.ToInt32(reader["ID"]);
+                            cliente.Nome = reader["NOME"] == DBNull.Value ? string.Empty : reader["NOME"].ToString();
+                            cliente.CPF = reader["CPF"] == DBNull.Value ? string.Empty : reader["CPF"].ToString();
+                            cliente.Email = reader["EMAIL"] == DBNull.Value ? string.Empty : reader["EMAIL"].ToString();
+                            cliente.Ativo = reader["ATIVO"] == DBNull.Value ? false : Convert.ToBoolean(reader["ATIVO"].ToString());
+                            cliente.IsPremium = reader["ISPREMIUM"] == DBNull.Value ? false : Convert.ToBoolean(reader["ISPREMIUM"].ToString());
+                            cliente.Cidade = reader["CIDADE"] == DBNull.Value ? string.Empty : reader["CIDADE"].ToString();
+                        }
+                        else
+                        {
+                            throw new Exception("Cliente não encontrado");
+                        }
+                    }
                 }
+
 
                 return Request.CreateResponse(HttpStatusCode.OK, cliente);
             }
