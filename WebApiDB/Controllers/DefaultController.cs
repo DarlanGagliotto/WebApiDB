@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
@@ -108,5 +109,41 @@ namespace WebApiDB.Controllers
             }
         }
 
+        [HttpPost]
+        [Route("clientes/inserircliente")]
+        public HttpResponseMessage PostCLiente(string nome, string cpf, string email, bool ativo, bool isPremium, string cidade)
+        {
+            bool result = false;
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(this.ConnectionString))
+                {
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand())
+                    {
+                        command.Connection = connection;
+                        command.CommandText = "INSERIR_CLIENTE";
+                        command.Parameters.AddWithValue("@NOME", nome);
+                        command.Parameters.AddWithValue("@CPF", cpf);
+                        command.Parameters.AddWithValue("@EMAIL", email);
+                        command.Parameters.AddWithValue("@ATIVO", ativo);
+                        command.Parameters.AddWithValue("@ISPREMIUM", isPremium);
+                        command.Parameters.AddWithValue("@CIDADE", cidade);
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        int i = command.ExecuteNonQuery();
+
+                        result = i > 0;
+                    }
+
+                    return Request.CreateResponse(HttpStatusCode.OK, result);
+                }
+            }
+            catch (Exception e)
+            {
+                return Request.CreateResponse(HttpStatusCode.BadRequest, e.Message);
+            }
+        }
     }
 }
